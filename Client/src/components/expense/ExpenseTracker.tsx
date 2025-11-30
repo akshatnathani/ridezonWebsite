@@ -38,7 +38,7 @@ export function ExpenseTracker({ groupId, currentUser, members }: ExpenseTracker
 
     const fetchExpenses = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:4000/api/groups/${groupId}/expenses`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/groups/${groupId}/expenses`, {
                 headers: {
                     Authorization: `Bearer ${sessionStorage.getItem("access")}`,
                 }
@@ -58,7 +58,7 @@ export function ExpenseTracker({ groupId, currentUser, members }: ExpenseTracker
 
     const handleAddExpense = async (expenseData: any) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/groups/${groupId}/expenses`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/groups/${groupId}/expenses`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -82,7 +82,7 @@ export function ExpenseTracker({ groupId, currentUser, members }: ExpenseTracker
 
     const handleSettleSplit = async (expenseId: string, debtorId: string) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/expenses/${expenseId}/settle/${debtorId}`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/expenses/${expenseId}/settle/${debtorId}`, {
                 method: "PUT",
                 headers: {
                     Authorization: `Bearer ${sessionStorage.getItem("access")}`,

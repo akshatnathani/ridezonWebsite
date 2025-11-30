@@ -2,7 +2,7 @@ import { toast } from "@/hooks/use-toast";
 import type { Pool } from "@/types/pool";
 import type { CreatePoolFormValues } from "@/schemas/schema";
 
-const API_BASE_URL = "http://localhost:4000/api";
+const API_BASE_URL = "https://ridezon.mlsctiet.com/api";
 
 /**
  * Generic API request handler with error handling

@@ -37,7 +37,7 @@ export function ChatWindow({ groupId, currentUser }: ChatWindowProps) {
 
     useEffect(() => {
         // Initialize Socket.io
-        const newSocket = io("http://localhost:4000"); // Update with actual backend URL
+        const newSocket = io("https://ridezon.mlsctiet.com"); // Update with actual backend URL
         setSocket(newSocket);
 
         newSocket.emit("join_group", groupId);
@@ -49,7 +49,7 @@ export function ChatWindow({ groupId, currentUser }: ChatWindowProps) {
         // Fetch initial messages
         const fetchMessages = async () => {
             try {
-                const response = await fetch(`http://localhost:4000/api/groups/${groupId}/messages`, {
+                const response = await fetch(`https://ridezon.mlsctiet.com/api/groups/${groupId}/messages`, {
                     headers: {
                         Authorization: `Bearer ${sessionStorage.getItem("access")}`,
                     }
@@ -79,7 +79,7 @@ export function ChatWindow({ groupId, currentUser }: ChatWindowProps) {
         if (!newMessage.trim() || !socket) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/groups/${groupId}/messages`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/groups/${groupId}/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

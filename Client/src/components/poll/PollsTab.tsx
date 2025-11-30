@@ -27,7 +27,7 @@ export function PollsTab({ groupId, currentUser }: PollsTabProps) {
 
     const fetchPolls = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/api/groups/${groupId}/polls`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/groups/${groupId}/polls`, {
                 headers: {
                     Authorization: `Bearer ${sessionStorage.getItem("access")}`,
                 },
@@ -49,7 +49,7 @@ export function PollsTab({ groupId, currentUser }: PollsTabProps) {
 
     const handleCreatePoll = async (data: { question: string; options: string[] }) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/groups/${groupId}/polls`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/groups/${groupId}/polls`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export function PollsTab({ groupId, currentUser }: PollsTabProps) {
 
     const handleVote = async (pollId: string, optionId: string) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/polls/${pollId}/vote/${optionId}`, {
+            const response = await fetch(`https://ridezon.mlsctiet.com/api/polls/${pollId}/vote/${optionId}`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${sessionStorage.getItem("access")}`,
