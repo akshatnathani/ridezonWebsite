@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	MapPin,
 	Clock,
@@ -9,6 +7,9 @@ import {
 	Phone,
 	Edit,
 	Trash2,
+	Check,
+	X,
+	MessageCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,6 +29,8 @@ import { useState } from "react";
 import { EditPoolForm } from "@/components/pool/edit-pool-form";
 import { poolApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import type { CurrentUserDetailsProps } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 interface PoolDetailsProps {
 	pool: Pool | null;
@@ -38,6 +41,7 @@ interface PoolDetailsProps {
 	endPoints?: string[];
 	transportModes?: string[];
 	isCurrentUserCreator?: boolean;
+	currentUser?: CurrentUserDetailsProps | null;
 }
 
 /**
@@ -52,11 +56,14 @@ export function PoolDetails({
 	endPoints = [],
 	transportModes = [],
 	isCurrentUserCreator = false,
+	currentUser,
 }: Readonly<PoolDetailsProps>) {
 	const [isJoining, setIsJoining] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
 	const { toast } = useToast();
+	const router = useRouter();
 
 	if (!pool) return null;
 
@@ -80,6 +87,13 @@ export function PoolDetails({
 	const creatorPhone = pool.created_by?.phone_number ?? "";
 	const creatorGender = pool.created_by?.gender ?? "";
 
+	// Check if current user is a member
+	const isMember = pool.members?.some(
+		(member) =>
+			member.full_name === currentUser?.full_name ||
+			(pool.created_by?.email === currentUser?.email && member.is_creator)
+	);
+
 	const handleJoinPool = async () => {
 		if (!pool) return;
 
@@ -89,7 +103,7 @@ export function PoolDetails({
 
 			toast({
 				title: "Success",
-				description: "You have successfully joined the pool!",
+				description: "Request to join sent successfully!",
 			});
 
 			// Close the dialog
@@ -104,6 +118,33 @@ export function PoolDetails({
 
 		} finally {
 			setIsJoining(false);
+		}
+	};
+
+	const handleRespondToRequest = async (requestId: string, status: "ACCEPTED" | "REJECTED") => {
+		if (!pool) return;
+
+		try {
+			setProcessingRequestId(requestId);
+			await poolApi.respondToRequest(String(pool.id), requestId, status);
+
+			toast({
+				title: status === "ACCEPTED" ? "Request Accepted" : "Request Rejected",
+				description: `User request has been ${status.toLowerCase()}.`,
+			});
+
+			if (onPoolUpdated) {
+				onPoolUpdated();
+			}
+		} catch (error) {
+			console.error(`Error responding to request:`, error);
+			toast({
+				title: "Action Failed",
+				description: error instanceof Error ? error.message : String(error),
+				variant: "destructive",
+			});
+		} finally {
+			setProcessingRequestId(null);
 		}
 	};
 
@@ -143,6 +184,8 @@ export function PoolDetails({
 			setIsDeleting(false);
 		}
 	};
+
+	const pendingRequests = pool.requests?.filter(r => r.status === "PENDING") || [];
 
 	return (
 		<AnimatePresence>
@@ -325,6 +368,51 @@ export function PoolDetails({
 								</h4>
 								<p className="mt-1 text-foreground">{description}</p>
 							</div>
+
+							{/* Requests Section for Creator */}
+							{isCurrentUserCreator && pendingRequests.length > 0 && (
+								<div className="mt-4">
+									<h4 className="text-sm font-medium text-muted-foreground mb-2">
+										Pending Requests
+									</h4>
+									<div className="space-y-2">
+										{pendingRequests.map((request) => (
+											<div key={request.id} className="flex items-center justify-between bg-card/50 p-2 rounded-md border border-border">
+												<div className="flex items-center gap-2">
+													<div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium">
+														{request.user?.fullName?.charAt(0) || "U"}
+													</div>
+													<div className="text-sm">
+														<p className="font-medium">{request.user?.fullName || "Unknown User"}</p>
+														<p className="text-xs text-muted-foreground">{request.user?.email}</p>
+													</div>
+												</div>
+												<div className="flex gap-1">
+													<Button
+														size="sm"
+														variant="ghost"
+														className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+														onClick={() => handleRespondToRequest(request.id, "ACCEPTED")}
+														disabled={processingRequestId === request.id}
+													>
+														<Check size={16} />
+													</Button>
+													<Button
+														size="sm"
+														variant="ghost"
+														className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+														onClick={() => handleRespondToRequest(request.id, "REJECTED")}
+														disabled={processingRequestId === request.id}
+													>
+														<X size={16} />
+													</Button>
+												</div>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
+
 						</motion.div>
 
 						<div className="flex justify-end gap-2 mt-4">
@@ -339,6 +427,17 @@ export function PoolDetails({
 								/>
 							) : (
 								<>
+									{(isCurrentUserCreator || isMember) && (
+										<Button
+											variant="secondary"
+											onClick={() => router.push(`/groups?poolId=${pool.id}`)}
+											className="flex items-center gap-1"
+										>
+											<MessageCircle size={16} />
+											Go to Group
+										</Button>
+									)}
+
 									{isCurrentUserCreator && (
 										<>
 											<Button
@@ -367,7 +466,7 @@ export function PoolDetails({
 										</>
 									)}
 
-									{!isCurrentUserCreator && (
+									{!isCurrentUserCreator && !isMember && (
 										<AnimatedButton
 											className="bg-primary hover:bg-primary/90"
 											glowColor="rgba(255, 0, 0, 0.3)"

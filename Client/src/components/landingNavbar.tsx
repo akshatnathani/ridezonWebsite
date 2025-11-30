@@ -31,7 +31,7 @@ export function LandingNavbar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-	const isPoolPage = pathname === "/pools";
+	const isPoolPage = pathname === "/pools" || pathname?.startsWith("/groups");
 	const isAuthPage = pathname === "/login" || pathname === "/signup";
 
 	const { resolvedTheme } = useTheme();

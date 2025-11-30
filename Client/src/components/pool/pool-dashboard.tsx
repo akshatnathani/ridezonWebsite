@@ -148,16 +148,23 @@ export default function PoolDashboard() {
 
 		return pools.filter((pool: Pool) => {
 			// Check if the current user exists in the members array
-			return (
-				pool.members?.some(
-					(member: PoolMembers) =>
-						// Compare by full_name or email if available
-						member.full_name === currentUser.full_name ||
-						// Also check if the pool creator matches (in case they're also a member)
-						(pool.created_by?.email === currentUser.email &&
-							member.is_creator),
-				) && pool.created_by?.email !== currentUser.email
-			); // Exclude pools created by the user (those are in "My Pools")
+			const isMember = pool.members?.some(
+				(member: PoolMembers) =>
+					// Compare by full_name or email if available
+					member.full_name === currentUser.full_name ||
+					// Also check if the pool creator matches (in case they're also a member)
+					(pool.created_by?.email === currentUser.email &&
+						member.is_creator),
+			);
+
+			// Check if the current user has a pending request
+			const hasPendingRequest = pool.requests?.some(
+				(request) =>
+					request.status === "PENDING" &&
+					(request.user?.email === currentUser.email || request.userId === currentUser.id)
+			);
+
+			return isMember && pool.created_by?.email !== currentUser.email;
 		});
 	}, [pools, currentUser]);
 
@@ -433,6 +440,7 @@ export default function PoolDashboard() {
 											<PoolCard
 												pool={pool}
 												onClick={() => handlePoolSelect(pool)}
+												currentUser={currentUser}
 											/>
 										</motion.div>
 									))
@@ -467,6 +475,7 @@ export default function PoolDashboard() {
 										<PoolCard
 											pool={pool}
 											onClick={() => handlePoolSelect(pool)}
+											currentUser={currentUser}
 										/>
 									</motion.div>
 								))}
@@ -502,6 +511,7 @@ export default function PoolDashboard() {
 										<PoolCard
 											pool={pool}
 											onClick={() => handlePoolSelect(pool)}
+											currentUser={currentUser}
 										/>
 									</motion.div>
 								))}
@@ -530,6 +540,7 @@ export default function PoolDashboard() {
 				endPoints={dynamicFilterOptions.endPoints}
 				transportModes={dynamicFilterOptions.transportModes}
 				isCurrentUserCreator={isCurrentUserCreator}
+				currentUser={currentUser}
 			/>
 
 			{/* Create Pool Dialog */}

@@ -6,6 +6,8 @@ import { Server } from "socket.io";
 import authRoutes from "./routes/auth.routes";
 import rideRoutes from "./routes/ride.routes";
 import groupRoutes from "./routes/group.routes";
+import expenseRoutes from "./routes/expense.routes";
+import pollRoutes from "./routes/poll.routes";
 
 dotenv.config();
 
@@ -32,6 +34,8 @@ app.use("/api/", apiLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/rides", rideRoutes);
 app.use("/api/groups", groupRoutes);
+app.use("/api", expenseRoutes);
+app.use("/api", pollRoutes);
 
 app.get("/", (req, res) => {
     res.send("Ridezon API running...");

@@ -44,7 +44,7 @@ export function AppHeader({ onCreatePool }: AppHeaderProps) {
 		>
 			<div className="container mx-auto flex justify-between items-center p-4">
 				<Link
-					href="/"
+					href="/pools"
 					className="flex items-center gap-2"
 				>
 					<motion.div

@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "library"
 }
 
@@ -11,7 +11,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String?  // Nullable for Google Auth users
+  password  String? // Nullable for Google Auth users
   fullName  String
   phone     String?  @unique
   gender    String?
@@ -24,28 +24,31 @@ model User {
   rideRequests RideRequest[]
   messages     Message[]
   expensesPaid Expense[]
+  Poll         Poll[]
+  PollVote     PollVote[]
 }
 
 model Ride {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   origin           String
   destination      String
   departureTime    DateTime
+  arrivalTime      DateTime?
   transportMode    String
   totalSeats       Int
   pricePerSeat     Float?
   description      String?
-  genderPreference String?  // "Any", "Male", "Female"
-  status           String   @default("OPEN") // OPEN, FULL, COMPLETED, CANCELLED
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  genderPreference String? // "Any", "Male", "Female"
+  status           String    @default("OPEN") // OPEN, FULL, COMPLETED, CANCELLED
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   creatorId String
   creator   User   @relation("CreatedRides", fields: [creatorId], references: [id])
 
-  requests RideRequest[]
-  passengers User[] @relation("RidePassengers")
-  group    Group?
+  requests   RideRequest[]
+  passengers User[]        @relation("RidePassengers")
+  group      Group?
 }
 
 model RideRequest {
@@ -69,6 +72,7 @@ model Group {
 
   messages Message[]
   expenses Expense[]
+  polls    Poll[]
 }
 
 model Message {
@@ -87,7 +91,8 @@ model Expense {
   id           String   @id @default(uuid())
   amount       Float
   description  String
-  splitDetails Json?    // Store who owes what
+  type         String   @default("EQUAL") // EQUAL, EXACT, PERCENTAGE
+  splitDetails Json? // Store who owes what: { [userId]: { amount: number, settled: boolean } }
   createdAt    DateTime @default(now())
 
   groupId String
@@ -95,4 +100,40 @@ model Expense {
 
   payerId String
   payer   User   @relation(fields: [payerId], references: [id])
+}
+
+model Poll {
+  id        String   @id @default(uuid())
+  question  String
+  createdAt DateTime @default(now())
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id])
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+
+  options PollOption[]
+}
+
+model PollOption {
+  id   String @id @default(uuid())
+  text String
+
+  pollId String
+  poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  votes PollVote[]
+}
+
+model PollVote {
+  id String @id @default(uuid())
+
+  pollOptionId String
+  pollOption   PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([pollOptionId, userId])
 }

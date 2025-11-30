@@ -7,7 +7,7 @@ interface AuthRequest extends Request {
 
 export const createRide = async (req: AuthRequest, res: Response) => {
     try {
-        const { origin, destination, departureTime, transportMode, totalSeats, pricePerSeat, description, genderPreference } = req.body;
+        const { origin, destination, departureTime, arrivalTime, transportMode, totalSeats, pricePerSeat, description, genderPreference } = req.body;
         const userId = req.user.id;
 
         const ride = await prisma.ride.create({
@@ -15,6 +15,7 @@ export const createRide = async (req: AuthRequest, res: Response) => {
                 origin,
                 destination,
                 departureTime: new Date(departureTime),
+                arrivalTime: arrivalTime ? new Date(arrivalTime) : null,
                 transportMode,
                 totalSeats,
                 pricePerSeat,
@@ -40,6 +41,7 @@ export const getRides = async (req: Request, res: Response) => {
             include: {
                 creator: { select: { fullName: true, avatar: true, gender: true, phone: true, email: true } },
                 passengers: { select: { fullName: true, avatar: true, gender: true, phone: true } },
+                requests: { include: { user: { select: { fullName: true, avatar: true, email: true } } } },
                 group: true
             },
             orderBy: { departureTime: "asc" },
@@ -101,7 +103,7 @@ export const deleteRide = async (req: AuthRequest, res: Response) => {
 export const updateRide = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { origin, destination, departureTime, transportMode, totalSeats, pricePerSeat, description, genderPreference } = req.body;
+        const { origin, destination, departureTime, arrivalTime, transportMode, totalSeats, pricePerSeat, description, genderPreference } = req.body;
         const userId = req.user.id;
 
         const ride = await prisma.ride.findUnique({ where: { id } });
@@ -115,6 +117,7 @@ export const updateRide = async (req: AuthRequest, res: Response) => {
                 origin,
                 destination,
                 departureTime: departureTime ? new Date(departureTime) : undefined,
+                arrivalTime: arrivalTime ? new Date(arrivalTime) : undefined,
                 transportMode,
                 totalSeats,
                 pricePerSeat,

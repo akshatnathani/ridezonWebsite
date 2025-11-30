@@ -26,15 +26,18 @@ import { formatTime, formatDate } from "@/lib/utils/date-utils";
 import { formatFarePerHead } from "@/lib/utils/pool-utils";
 import { useState } from "react";
 
+import type { CurrentUserDetailsProps } from "@/lib/auth";
+
 interface PoolCardProps {
 	pool: Pool;
 	onClick: () => void;
+	currentUser?: CurrentUserDetailsProps | null;
 }
 
 /**
  * Enhanced pool card component with advanced animations, glassmorphism, and member details
  */
-export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
+export function PoolCard({ pool, onClick, currentUser }: Readonly<PoolCardProps>) {
 	const [isHovered, setIsHovered] = useState(false);
 	const [showMembers, setShowMembers] = useState(false);
 	const x = useMotionValue(0);
@@ -123,11 +126,10 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 					{/* Animated gradient background */}
 					<div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none">
 						<motion.div
-							className={`w-full h-full bg-gradient-to-br ${
-								isFemaleOnly
-									? "from-pink-500/30 via-transparent to-pink-300/20"
-									: "from-primary/30 via-transparent to-primary/20"
-							}`}
+							className={`w-full h-full bg-gradient-to-br ${isFemaleOnly
+								? "from-pink-500/30 via-transparent to-pink-300/20"
+								: "from-primary/30 via-transparent to-primary/20"
+								}`}
 							animate={{
 								backgroundPosition: ["0% 0%", "100% 100%"],
 							}}
@@ -150,27 +152,23 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 								exit={{ opacity: 0 }}
 							>
 								<motion.div
-									className={`absolute inset-0 rounded-xl border-2 ${
-										isFemaleOnly
-											? "border-pink-500/50"
-											: "border-primary/50"
-									}`}
+									className={`absolute inset-0 rounded-xl border-2 ${isFemaleOnly
+										? "border-pink-500/50"
+										: "border-primary/50"
+										}`}
 									animate={{
 										boxShadow: [
-											`0 0 0px ${
-												isFemaleOnly
-													? "rgba(236, 72, 153, 0.3)"
-													: "rgba(220, 38, 38, 0.3)"
+											`0 0 0px ${isFemaleOnly
+												? "rgba(236, 72, 153, 0.3)"
+												: "rgba(220, 38, 38, 0.3)"
 											}`,
-											`0 0 8px ${
-												isFemaleOnly
-													? "rgba(236, 72, 153, 0.5)"
-													: "rgba(220, 38, 38, 0.5)"
+											`0 0 8px ${isFemaleOnly
+												? "rgba(236, 72, 153, 0.5)"
+												: "rgba(220, 38, 38, 0.5)"
 											}`,
-											`0 0 0px ${
-												isFemaleOnly
-													? "rgba(236, 72, 153, 0.3)"
-													: "rgba(220, 38, 38, 0.3)"
+											`0 0 0px ${isFemaleOnly
+												? "rgba(236, 72, 153, 0.3)"
+												: "rgba(220, 38, 38, 0.3)"
 											}`,
 										],
 									}}
@@ -188,9 +186,8 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 					<AnimatePresence>
 						{isHovered && (
 							<motion.div
-								className={`absolute inset-0 ${
-									isFemaleOnly ? "bg-pink-500/10" : "bg-primary/10"
-								}`}
+								className={`absolute inset-0 ${isFemaleOnly ? "bg-pink-500/10" : "bg-primary/10"
+									}`}
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
@@ -230,22 +227,21 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 										</span>
 									</h3>
 								</div>
-								<p className="text-sm text-foreground/70 dark:text-foreground/60 flex items-center gap-1">
+								<div className="text-sm text-foreground/70 dark:text-foreground/60 flex items-center gap-1">
 									<span>by</span>
 									<span className="font-medium">{creatorName}</span>
 									{creatorGender && (
 										<Badge
-											className={`ml-1 ${
-												creatorGender.toLowerCase() === "female"
-													? "bg-pink-500/80"
-													: "bg-blue-500/80"
-											}`}
+											className={`ml-1 ${creatorGender.toLowerCase() === "female"
+												? "bg-pink-500/80"
+												: "bg-blue-500/80"
+												}`}
 											variant="outline"
 										>
 											{creatorGender}
 										</Badge>
 									)}
-								</p>
+								</div>
 								{creatorPhone && (
 									<p className="text-xs text-foreground/60 flex items-center gap-1">
 										<Phone
@@ -272,6 +268,15 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 								</motion.div>
 							)}
 						</div>
+
+						{/* Request Status Badge */}
+						{currentUser && pool.requests?.some(r => r.status === "PENDING" && (r.user?.email === currentUser.email || r.userId === currentUser.id)) && (
+							<div className="mb-2">
+								<Badge variant="outline" className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/50">
+									Request Pending
+								</Badge>
+							</div>
+						)}
 
 						{/* Time information */}
 						<div className="flex items-center gap-2 text-sm text-foreground/80 mb-4 bg-foreground/5 p-2 rounded-md">
@@ -417,11 +422,10 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 													>
 														<div className="flex items-center gap-2">
 															<div
-																className={`w-2 h-2 rounded-full ${
-																	member.is_creator
-																		? "bg-yellow-500"
-																		: "bg-green-500"
-																}`}
+																className={`w-2 h-2 rounded-full ${member.is_creator
+																	? "bg-yellow-500"
+																	: "bg-green-500"
+																	}`}
 															/>
 															<div className="flex flex-col">
 																<span className="text-xs font-medium">
@@ -450,15 +454,14 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 															</div>
 														</div>
 														<Badge
-															className={`text-[10px] ${
-																member.gender?.toLowerCase() ===
+															className={`text-[10px] ${member.gender?.toLowerCase() ===
 																"female"
-																	? "bg-pink-500/20 text-pink-700 dark:text-pink-400"
-																	: member.gender?.toLowerCase() ===
-																	  "male"
+																? "bg-pink-500/20 text-pink-700 dark:text-pink-400"
+																: member.gender?.toLowerCase() ===
+																	"male"
 																	? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
 																	: "bg-gray-500/20 text-gray-700 dark:text-gray-400"
-															}`}
+																}`}
 															variant="outline"
 														>
 															{member.gender ? member.gender : "Unknown"}
@@ -474,19 +477,17 @@ export function PoolCard({ pool, onClick }: Readonly<PoolCardProps>) {
 
 						{/* Available seats indicator */}
 						<motion.div
-							className={`mt-auto p-2 rounded-md text-center text-sm font-medium ${
-								availableSeats > 0
-									? "bg-green-500/10 text-green-600 dark:text-green-400"
-									: "bg-red-500/10 text-red-600 dark:text-red-400"
-							}`}
+							className={`mt-auto p-2 rounded-md text-center text-sm font-medium ${availableSeats > 0
+								? "bg-green-500/10 text-green-600 dark:text-green-400"
+								: "bg-red-500/10 text-red-600 dark:text-red-400"
+								}`}
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.2 }}
 						>
 							{availableSeats > 0
-								? `${availableSeats} ${
-										availableSeats === 1 ? "seat" : "seats"
-								  } available`
+								? `${availableSeats} ${availableSeats === 1 ? "seat" : "seats"
+								} available`
 								: "No seats available"}
 						</motion.div>
 					</div>

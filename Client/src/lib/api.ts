@@ -86,6 +86,12 @@ const mapRideToPool = (ride: any): Pool => {
 			is_creator: p.id === ride.creatorId,
 			pool: ride.id
 		})) : [],
+		requests: ride.requests ? ride.requests.map((r: any) => ({
+			id: r.id,
+			status: r.status,
+			userId: r.userId,
+			user: r.user
+		})) : [],
 
 		// Keep original fields just in case
 		...ride

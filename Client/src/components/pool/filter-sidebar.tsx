@@ -69,7 +69,7 @@ export function FilterSidebar({
 		filters.endPointFilter !== null,
 		filters.transportModeFilter !== null,
 		filters.fareRange[0] !== fareRange.min ||
-			filters.fareRange[1] !== fareRange.max,
+		filters.fareRange[1] !== fareRange.max,
 	].filter(Boolean).length;
 
 	return (
@@ -296,6 +296,48 @@ export function FilterSidebar({
 					</motion.div>
 
 					<motion.div
+						className="space-y-2"
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.3, delay: 0.35 }}
+					>
+						<div className="flex items-center justify-between">
+							<h3 className="text-sm font-medium">Departure Time</h3>
+							{filters.departureTimeFilter && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-6 px-2 text-xs"
+									onClick={() =>
+										onUpdateFilter("departureTimeFilter", null)
+									}
+								>
+									Clear
+								</Button>
+							)}
+						</div>
+						<Select
+							value={filters.departureTimeFilter ?? ""}
+							onValueChange={(value) =>
+								onUpdateFilter(
+									"departureTimeFilter",
+									value === "any" ? null : value,
+								)
+							}
+						>
+							<SelectTrigger className="bg-white/20 dark:bg-black/20 border-white/20 dark:border-white/10">
+								<SelectValue placeholder="Select time of day" />
+							</SelectTrigger>
+							<SelectContent className="bg-background/80 backdrop-blur-lg border-white/20 dark:border-white/10">
+								<SelectItem value="any">Any Time</SelectItem>
+								<SelectItem value="Morning">Morning (6 AM - 12 PM)</SelectItem>
+								<SelectItem value="Afternoon">Afternoon (12 PM - 6 PM)</SelectItem>
+								<SelectItem value="Evening">Evening (6 PM - 12 AM)</SelectItem>
+							</SelectContent>
+						</Select>
+					</motion.div>
+
+					<motion.div
 						className="space-y-4"
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -337,20 +379,20 @@ export function FilterSidebar({
 						/>
 						{(filters.fareRange[0] !== fareRange.min ||
 							filters.fareRange[1] !== fareRange.max) && (
-							<Button
-								variant="ghost"
-								size="sm"
-								className="h-6 px-2 text-xs w-full"
-								onClick={() =>
-									onUpdateFilter("fareRange", [
-										fareRange.min,
-										fareRange.max,
-									])
-								}
-							>
-								Reset price range
-							</Button>
-						)}
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-6 px-2 text-xs w-full"
+									onClick={() =>
+										onUpdateFilter("fareRange", [
+											fareRange.min,
+											fareRange.max,
+										])
+									}
+								>
+									Reset price range
+								</Button>
+							)}
 					</motion.div>
 
 					<motion.div

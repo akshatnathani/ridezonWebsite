@@ -5,6 +5,7 @@ export const createRideSchema = z.object({
         origin: z.string().min(1, "Start point is required"),
         destination: z.string().min(1, "End point is required"),
         departureTime: z.string().datetime(),
+        arrivalTime: z.string().datetime().optional(),
         transportMode: z.string().min(1, "Transport mode is required"),
         totalSeats: z.number().min(1).max(20),
         pricePerSeat: z.number().min(1).optional(),

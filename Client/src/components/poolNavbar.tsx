@@ -85,7 +85,7 @@ export function PoolNavbar({ onCreatePool }: Readonly<NavbarProps>) {
 
 	// App navigation links (when authenticated)
 	const navLinks: NavLink[] = [
-		{ href: "/", label: "Dashboard", icon: <Home size={16} /> },
+		{ href: "/pools", label: "Rides", icon: <Home size={16} /> },
 		{
 			href: "#",
 			label: "Create Pool",

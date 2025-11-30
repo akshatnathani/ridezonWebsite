@@ -22,6 +22,7 @@ export const usePoolFilters = (pools: Pool[] = []) => {
 		startPointFilter: null,
 		endPointFilter: null,
 		transportModeFilter: null,
+		departureTimeFilter: null,
 		fareRange: [fareRange.min, fareRange.max],
 	});
 
@@ -50,6 +51,7 @@ export const usePoolFilters = (pools: Pool[] = []) => {
 			startPointFilter: null,
 			endPointFilter: null,
 			transportModeFilter: null,
+			departureTimeFilter: null,
 			fareRange: [fareRange.min, fareRange.max],
 		});
 	}, [fareRange.min, fareRange.max]);
@@ -62,14 +64,19 @@ export const usePoolFilters = (pools: Pool[] = []) => {
 			// Get creator name from either format
 			const creatorName = pool.created_by?.full_name ?? pool.createdBy ?? "";
 
-			// Search by creator
-			if (
-				filters.searchQuery &&
-				!creatorName
-					.toLowerCase()
-					.includes(filters.searchQuery.toLowerCase())
-			) {
-				return false;
+			// Search by creator, start point, or end point
+			if (filters.searchQuery) {
+				const query = filters.searchQuery.toLowerCase();
+				const startPoint = (pool.start_point ?? pool.startPoint ?? "").toLowerCase();
+				const endPoint = (pool.end_point ?? pool.endPoint ?? "").toLowerCase();
+
+				const matchesCreator = creatorName.toLowerCase().includes(query);
+				const matchesStart = startPoint.includes(query);
+				const matchesEnd = endPoint.includes(query);
+
+				if (!matchesCreator && !matchesStart && !matchesEnd) {
+					return false;
+				}
 			}
 
 			// Filter by female only
@@ -103,6 +110,30 @@ export const usePoolFilters = (pools: Pool[] = []) => {
 					pool.transport_mode ?? pool.transportMode ?? "";
 				if (transportMode !== filters.transportModeFilter) {
 					return false;
+				}
+			}
+
+			// Filter by departure time
+			if (filters.departureTimeFilter) {
+				const timeStr = pool.departureTime ?? pool.departure_time ?? "";
+				if (!timeStr) return false;
+
+				const date = new Date(timeStr);
+				const hour = date.getHours();
+
+				switch (filters.departureTimeFilter) {
+					case "Morning": // 6 AM - 12 PM
+						if (hour < 6 || hour >= 12) return false;
+						break;
+					case "Afternoon": // 12 PM - 6 PM
+						if (hour < 12 || hour >= 18) return false;
+						break;
+					case "Evening": // 6 PM - 12 AM
+						if (hour < 18) return false;
+						break;
+					// Night is implicitly 0-6 if needed, or handled by default/Evening overlap
+					default:
+						break;
 				}
 			}
 

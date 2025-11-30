@@ -34,6 +34,16 @@ export interface Pool {
 		phone?: string;
 		gender?: string;
 	}[];
+	requests?: {
+		id: string;
+		status: "PENDING" | "ACCEPTED" | "REJECTED";
+		userId: string;
+		user?: {
+			fullName: string;
+			avatar?: string;
+			email?: string;
+		};
+	}[];
 	group?: {
 		id: string;
 	};
@@ -71,6 +81,7 @@ export interface FilterState {
 	startPointFilter: string | null;
 	endPointFilter: string | null;
 	transportModeFilter: string | null;
+	departureTimeFilter: string | null;
 	fareRange: [number, number];
 }
 

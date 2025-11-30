@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, Receipt, MapPin, Users, Car } from "lucide-react";
+import { MessageCircle, Receipt, MapPin, Users, Car, BarChart2 } from "lucide-react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { PoolNavbar } from "@/components/poolNavbar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ExpenseTracker } from "@/components/expense/ExpenseTracker";
+import { PollsTab } from "@/components/poll/PollsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { poolApi, authApi } from "@/lib";
@@ -15,12 +16,16 @@ import { formatDate } from "@/lib/utils/date-utils";
 import { Pool } from "@/types/pool";
 import { CurrentUserDetailsProps } from "@/lib/auth";
 
+import { useSearchParams } from "next/navigation";
+
 export default function GroupsPage() {
     const [pools, setPools] = useState<Pool[]>([]);
     const [currentUser, setCurrentUser] = useState<CurrentUserDetailsProps | null>(null);
     const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
+    const searchParams = useSearchParams();
+    const poolIdFromUrl = searchParams.get("poolId");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -56,6 +61,16 @@ export default function GroupsPage() {
         });
     }, [pools, currentUser]);
 
+    // Auto-select pool if poolId is present in URL
+    useEffect(() => {
+        if (poolIdFromUrl && myGroups.length > 0 && !selectedPool) {
+            const poolToSelect = myGroups.find(p => String(p.id) === poolIdFromUrl);
+            if (poolToSelect) {
+                setSelectedPool(poolToSelect);
+            }
+        }
+    }, [poolIdFromUrl, myGroups, selectedPool]);
+
     return (
         <AnimatedBackground variant="paths" intensity="subtle" className="min-h-screen">
             <PoolNavbar />
@@ -89,7 +104,7 @@ export default function GroupsPage() {
                                         </div>
                                         <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                                             <span className="flex items-center gap-1"><MapPin size={12} /> {pool.transportMode || pool.transport_mode}</span>
-                                            <span className="flex items-center gap-1"><Users size={12} /> {pool.passengers?.length || pool.members?.length || 1} Members</span>
+                                            <span className="flex items-center gap-1"><Users size={12} /> {(pool.passengers?.length || 0) + 1} Members</span>
                                         </div>
                                     </motion.div>
                                 ))
@@ -125,14 +140,59 @@ export default function GroupsPage() {
                                     <TabsTrigger value="expenses" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                         <Receipt size={16} /> Expenses
                                     </TabsTrigger>
+                                    <TabsTrigger value="polls" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                                        <BarChart2 size={16} /> Polls
+                                    </TabsTrigger>
                                 </TabsList>
-
                                 <TabsContent value="chat" className="flex-1 mt-0">
-                                    <ChatWindow groupId={String(selectedPool.id)} currentUser={currentUser} />
+                                    {selectedPool.group?.id ? (
+                                        <ChatWindow groupId={selectedPool.group.id} currentUser={currentUser} />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                                            Group chat not available
+                                        </div>
+                                    )}
                                 </TabsContent>
 
                                 <TabsContent value="expenses" className="flex-1 mt-0">
-                                    <ExpenseTracker groupId={String(selectedPool.id)} />
+                                    {selectedPool.group?.id ? (
+                                        <ExpenseTracker
+                                            groupId={selectedPool.group.id}
+                                            currentUser={{
+                                                id: currentUser.id,
+                                                fullName: currentUser.full_name || (currentUser as any).fullName,
+                                                email: currentUser.email
+                                            }}
+                                            members={(selectedPool.passengers || selectedPool.members || []).map(m => ({
+                                                id: m.id || (m as any).userId || "unknown",
+                                                fullName: m.fullName || (m as any).full_name || "Unknown",
+                                                email: (m as any).email
+                                            }))}
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                                            Expenses not available
+                                        </div>
+                                    )}
+                                </TabsContent>
+
+                                <TabsContent value="polls" className="flex-1 mt-0">
+                                    {selectedPool.group?.id ? (
+                                        <PollsTab
+                                            groupId={selectedPool.group.id}
+                                            currentUser={{
+                                                id: currentUser.id,
+                                                full_name: currentUser.full_name || (currentUser as any).fullName,
+                                                email: currentUser.email,
+                                                phone_number: currentUser.phone_number || "",
+                                                gender: currentUser.gender || ""
+                                            } as any}
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                                            Polls not available
+                                        </div>
+                                    )}
                                 </TabsContent>
                             </Tabs>
                         ) : (
@@ -146,6 +206,6 @@ export default function GroupsPage() {
                     </div>
                 </div>
             </div>
-        </AnimatedBackground>
+        </AnimatedBackground >
     );
 }
